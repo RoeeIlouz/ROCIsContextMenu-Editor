@@ -1,0 +1,162 @@
+{
+  "CMEToggleClassicMenu": {
+    "Content": "Classic right-click menu",
+    "Description": "Always show the full menu on Windows 11, without clicking \"Show more options\".",
+    "category": "Windows 11",
+    "Type": "Toggle",
+    "RestartExplorer": true,
+    "InvokeScript": ["Set-ClassicMenu $true"],
+    "UndoScript": ["Set-ClassicMenu $false"],
+    "DetectScript": "Test-ClassicMenu",
+    "UnavailableScript": "if (-not $App.IsWin11) { 'Only applies to Windows 11; this PC already uses the classic menu.' }"
+  },
+  "CMETweaksHideGiveAccess": {
+    "Content": "Remove \"Give access to\"",
+    "Description": "Network sharing entry on files, folders and drives (ntshrui.dll).",
+    "category": "Clean up the menu",
+    "RestartExplorer": true,
+    "registry": [
+      { "Path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Shell Extensions\\Blocked", "Name": "{f81e9010-6ea4-11ce-a7ff-00aa003ca9f6}", "Value": "", "Type": "String", "OriginalValue": "<RemoveEntry>" }
+    ]
+  },
+  "CMETweaksHideIncludeInLibrary": {
+    "Content": "Remove \"Include in library\"",
+    "Description": "Libraries submenu on folders.",
+    "category": "Clean up the menu",
+    "RestartExplorer": true,
+    "registry": [
+      { "Path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Shell Extensions\\Blocked", "Name": "{3dad6c5d-2167-4cae-9914-f99e41c12cfa}", "Value": "", "Type": "String", "OriginalValue": "<RemoveEntry>" }
+    ]
+  },
+  "CMETweaksHideCastToDevice": {
+    "Content": "Remove \"Cast to device\"",
+    "Description": "Play To entry on video, audio and image files.",
+    "category": "Clean up the menu",
+    "RestartExplorer": true,
+    "registry": [
+      { "Path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Shell Extensions\\Blocked", "Name": "{7AD84985-87B4-4a16-BE58-8B72A5B390F7}", "Value": "", "Type": "String", "OriginalValue": "<RemoveEntry>" }
+    ]
+  },
+  "CMETweaksHideCompatibility": {
+    "Content": "Remove \"Troubleshoot compatibility\"",
+    "Description": "Compatibility troubleshooter entry on programs (.exe).",
+    "category": "Clean up the menu",
+    "RestartExplorer": true,
+    "registry": [
+      { "Path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Shell Extensions\\Blocked", "Name": "{1d27f844-3a1f-4410-85ac-14651078412d}", "Value": "", "Type": "String", "OriginalValue": "<RemoveEntry>" }
+    ]
+  },
+  "CMETweaksHidePreviousVersions": {
+    "Content": "Remove \"Restore previous versions\"",
+    "Description": "File History / shadow copy entry on files, folders and drives.",
+    "category": "Clean up the menu",
+    "RestartExplorer": true,
+    "registry": [
+      { "Path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Shell Extensions\\Blocked", "Name": "{596AB062-B4D2-4215-9F74-E9109B0A8153}", "Value": "", "Type": "String", "OriginalValue": "<RemoveEntry>" }
+    ]
+  },
+  "CMETweaksHideShare": {
+    "Content": "Remove \"Share\"",
+    "Description": "Windows share sheet entry on files.",
+    "category": "Clean up the menu",
+    "RestartExplorer": true,
+    "registry": [
+      { "Path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Shell Extensions\\Blocked", "Name": "{e2bf9676-5f8f-435c-97eb-11607a5bedf7}", "Value": "", "Type": "String", "OriginalValue": "<RemoveEntry>" }
+    ]
+  },
+  "CMETweaksHidePinToStart": {
+    "Content": "Remove \"Pin to Start\"",
+    "Description": "Pin to Start entry on folders and programs.",
+    "category": "Clean up the menu",
+    "RestartExplorer": true,
+    "registry": [
+      { "Path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Shell Extensions\\Blocked", "Name": "{470C0EBD-5D73-4d58-9CED-E91E22E23282}", "Value": "", "Type": "String", "OriginalValue": "<RemoveEntry>" }
+    ]
+  },
+  "CMETweaksHideTerminal": {
+    "Content": "Remove \"Open in Terminal\"",
+    "Description": "Windows Terminal entry on folders and folder background (Windows 11 menu).",
+    "category": "Clean up the menu",
+    "RestartExplorer": true,
+    "registry": [
+      { "Path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Shell Extensions\\Blocked", "Name": "{9F156763-7844-4DC4-B2B1-901F640F5155}", "Value": "", "Type": "String", "OriginalValue": "<RemoveEntry>" }
+    ]
+  },
+  "CMETweaksHideNotepad": {
+    "Content": "Remove \"Edit in Notepad\"",
+    "Description": "Notepad entry on files and folders (Windows 11 menu).",
+    "category": "Clean up the menu",
+    "RestartExplorer": true,
+    "registry": [
+      { "Path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Shell Extensions\\Blocked", "Name": "{CA6CC9F1-867A-481E-951E-A28C5E4F01EA}", "Value": "", "Type": "String", "OriginalValue": "<RemoveEntry>" }
+    ]
+  },
+  "CMETweaksHidePaint": {
+    "Content": "Remove \"Edit with Paint\"",
+    "Description": "Paint entry on image files (Windows 11 menu).",
+    "category": "Clean up the menu",
+    "RestartExplorer": true,
+    "registry": [
+      { "Path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Shell Extensions\\Blocked", "Name": "{2430F218-B743-4FD6-97BF-5C76541B4AE9}", "Value": "", "Type": "String", "OriginalValue": "<RemoveEntry>" }
+    ]
+  },
+  "CMETweaksHidePhotos": {
+    "Content": "Remove \"Edit with Photos\"",
+    "Description": "Photos entry on image files (Windows 11 menu).",
+    "category": "Clean up the menu",
+    "RestartExplorer": true,
+    "registry": [
+      { "Path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Shell Extensions\\Blocked", "Name": "{BFE0E2A4-C70C-4AD7-AC3D-10D1ECEBB5B4}", "Value": "", "Type": "String", "OriginalValue": "<RemoveEntry>" }
+    ]
+  },
+  "CMETweaksAddVSCode": {
+    "Content": "Add \"Open with Code\"",
+    "Description": "VS Code on files, folders and folder background.",
+    "category": "Add useful entries",
+    "InvokeScript": ["Install-Preset 'vscode'"],
+    "UndoScript": ["Uninstall-Preset 'vscode'"],
+    "DetectScript": "Test-PresetInstalled 'vscode' (Get-PresetSpec 'vscode')",
+    "UnavailableScript": "if (-not (Find-VSCode)) { 'VS Code was not found' }"
+  },
+  "CMETweaksAddPwsh": {
+    "Content": "Add \"Open PowerShell 7 here\"",
+    "Description": "PowerShell 7 in the folder you right-clicked.",
+    "category": "Add useful entries",
+    "InvokeScript": ["Install-Preset 'pwsh'"],
+    "UndoScript": ["Uninstall-Preset 'pwsh'"],
+    "DetectScript": "Test-PresetInstalled 'pwsh' (Get-PresetSpec 'pwsh')",
+    "UnavailableScript": "if (-not (Find-Pwsh)) { 'PowerShell 7 was not found' }"
+  },
+  "CMETweaksAddTakeOwnership": {
+    "Content": "Add \"Take ownership\"",
+    "Description": "Takes ownership and grants full access to a file or folder (asks for admin when used).",
+    "category": "Add useful entries",
+    "InvokeScript": ["Install-Preset 'takeown'"],
+    "UndoScript": ["Uninstall-Preset 'takeown'"],
+    "DetectScript": "Test-PresetInstalled 'takeown' (Get-PresetSpec 'takeown')"
+  },
+  "CMETweaksAddCopyPath": {
+    "Content": "Add \"Copy full path\"",
+    "Description": "Copies the full path of a file or folder to the clipboard.",
+    "category": "Add useful entries",
+    "InvokeScript": ["Install-Preset 'copypath'"],
+    "UndoScript": ["Uninstall-Preset 'copypath'"],
+    "DetectScript": "Test-PresetInstalled 'copypath' (Get-PresetSpec 'copypath')"
+  },
+  "CMETweaksAddSha256": {
+    "Content": "Add \"Show SHA-256 hash\"",
+    "Description": "Prints the SHA-256 checksum of any file.",
+    "category": "Add useful entries",
+    "InvokeScript": ["Install-Preset 'sha256'"],
+    "UndoScript": ["Uninstall-Preset 'sha256'"],
+    "DetectScript": "Test-PresetInstalled 'sha256' (Get-PresetSpec 'sha256')"
+  },
+  "CMETweaksAddGodMode": {
+    "Content": "Add \"God Mode\"",
+    "Description": "Opens the all-settings control panel from the desktop menu.",
+    "category": "Add useful entries",
+    "InvokeScript": ["Install-Preset 'godmode'"],
+    "UndoScript": ["Uninstall-Preset 'godmode'"],
+    "DetectScript": "Test-PresetInstalled 'godmode' (Get-PresetSpec 'godmode')"
+  }
+}

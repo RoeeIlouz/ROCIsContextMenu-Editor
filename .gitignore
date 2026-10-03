@@ -1,0 +1,6 @@
+Backups/
+*.bak
+.base-ast/
+.base-ast-cache/
+.agent/
+1.1.0

@@ -1,0 +1,602 @@
+<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Context Menu Editor" Width="1300" Height="820" MinWidth="1060" MinHeight="620"
+        WindowStartupLocation="CenterScreen" Background="#1B1C1F" Foreground="#EEEEEC"
+        FontFamily="Segoe UI Variable Text, Segoe UI" FontSize="13"
+        UseLayoutRounding="True" SnapsToDevicePixels="True" TextOptions.TextFormattingMode="Display">
+    <Window.Resources>
+        <!--RES-->
+        <Style x:Key="NavItem" TargetType="ListBoxItem">
+            <Setter Property="Margin" Value="{Binding Margin}"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Foreground" Value="#A2A5AB"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="b" Background="Transparent" CornerRadius="7" Padding="10,8" Margin="10,1">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <!-- The active item's icon gets the brand's red square, like the dot on the R -->
+                                <Grid Margin="0,0,12,0" VerticalAlignment="Center">
+                                    <Path x:Name="g" Data="{Binding Glyph}" Fill="#7A7D83" Width="15" Height="15" Stretch="Uniform"/>
+                                    <Border x:Name="dot" Width="5" Height="5" CornerRadius="1" Background="#E5323F" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-3,-4,0" Visibility="Collapsed"/>
+                                </Grid>
+                                <TextBlock Grid.Column="1" Text="{Binding Label}" VerticalAlignment="Center"/>
+                                <TextBlock Grid.Column="2" Text="{Binding Count}" FontSize="11.5" Foreground="#7A7D83" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="b" Property="Background" Value="#232428"/>
+                                <Setter Property="Foreground" Value="#EEEEEC"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="b" Property="Background" Value="#2D2F33"/>
+                                <Setter TargetName="g" Property="Fill" Value="#EEEEEC"/>
+                                <Setter TargetName="dot" Property="Visibility" Value="Visible"/>
+                                <Setter Property="Foreground" Value="#FFFFFF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="RowItem" TargetType="ListBoxItem">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="Foreground" Value="#EEEEEC"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="b" Background="Transparent" CornerRadius="8" Padding="10,6" Margin="0,1">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="b" Property="Background" Value="#222326"/></Trigger>
+                            <Trigger Property="IsSelected" Value="True"><Setter TargetName="b" Property="Background" Value="#2D2F33"/></Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <DataTemplate x:Key="RowTemplate">
+            <Grid Height="42">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="160"/>
+                    <ColumnDefinition Width="84"/>
+                    <ColumnDefinition Width="48"/>
+                </Grid.ColumnDefinitions>
+                <Grid x:Name="ico" Width="32" Height="32" Margin="0,0,12,0" HorizontalAlignment="Left" VerticalAlignment="Center">
+                    <Border CornerRadius="7" Background="#2D2F33"/>
+                    <Image Source="{Binding IconImage}" Width="20" Height="20" RenderOptions.BitmapScalingMode="HighQuality"/>
+                    <Path x:Name="fb" Data="{Binding Glyph}" Fill="#7A7D83" Width="15" Height="15" Stretch="Uniform" Visibility="Collapsed"/>
+                </Grid>
+                <Grid x:Name="txt" Grid.Column="1" VerticalAlignment="Center" Margin="0,0,16,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <DockPanel>
+                        <Border x:Name="shiftTag" DockPanel.Dock="Right" Style="{StaticResource Tag}" Margin="6,0,0,0" Visibility="Collapsed">
+                            <TextBlock Text="Shift" FontSize="11" Foreground="#FBBF24"/>
+                        </Border>
+                        <Border x:Name="brokenTag" DockPanel.Dock="Right" Style="{StaticResource Tag}" Background="#2BE5323F" Margin="6,0,0,0" Visibility="Collapsed">
+                            <TextBlock Text="Missing" FontSize="11" Foreground="#F2858C"/>
+                        </Border>
+                        <Border x:Name="kindTag" DockPanel.Dock="Right" Style="{StaticResource Tag}" Margin="6,0,0,0">
+                            <TextBlock Text="{Binding KindTag}" FontSize="11" Foreground="#C8CACF"/>
+                        </Border>
+                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="13.5" TextTrimming="CharacterEllipsis"/>
+                    </DockPanel>
+                    <TextBlock x:Name="sub" Grid.Row="1" Text="{Binding Sub}" Foreground="#7A7D83" FontSize="11.5" FontFamily="{StaticResource Mono}" TextTrimming="CharacterEllipsis" Margin="0,2,0,0"/>
+                </Grid>
+                <TextBlock Grid.Column="2" Text="{Binding LocLabel}" Foreground="#A2A5AB" FontSize="12" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="0,0,12,0" ToolTip="{Binding LocLabel}"/>
+                <TextBlock Grid.Column="3" Text="{Binding ScopeShort}" Foreground="#A2A5AB" FontSize="12" VerticalAlignment="Center"/>
+                <ToggleButton Grid.Column="4" Style="{StaticResource Switch}" IsChecked="{Binding Enabled, Mode=OneWay}" HorizontalAlignment="Right" VerticalAlignment="Center" ToolTip="Show or hide in the menu"/>
+            </Grid>
+            <DataTemplate.Triggers>
+                <DataTrigger Binding="{Binding IconImage}" Value="{x:Null}"><Setter TargetName="fb" Property="Visibility" Value="Visible"/></DataTrigger>
+                <DataTrigger Binding="{Binding Enabled}" Value="False"><Setter TargetName="txt" Property="Opacity" Value="0.45"/></DataTrigger>
+                <DataTrigger Binding="{Binding Extended}" Value="True"><Setter TargetName="shiftTag" Property="Visibility" Value="Visible"/></DataTrigger>
+                <DataTrigger Binding="{Binding KindTag}" Value=""><Setter TargetName="kindTag" Property="Visibility" Value="Collapsed"/></DataTrigger>
+                <DataTrigger Binding="{Binding Broken}" Value="True"><Setter TargetName="brokenTag" Property="Visibility" Value="Visible"/></DataTrigger>
+                <DataTrigger Binding="{Binding IsChild}" Value="True"><Setter TargetName="ico" Property="Margin" Value="26,0,12,0"/></DataTrigger>
+                <DataTrigger Binding="{Binding IsCommand}" Value="False"><Setter TargetName="sub" Property="FontFamily" Value="Segoe UI Variable Text, Segoe UI"/></DataTrigger>
+            </DataTemplate.Triggers>
+        </DataTemplate>
+    </Window.Resources>
+
+    <Grid Background="#1B1C1F">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="232"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- SIDEBAR -->
+        <Border Background="#151618" BorderBrush="#2A2B2F" BorderThickness="0,0,1,0">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="20,22,20,26">
+                    <Image x:Name="BrandIcon" Width="34" Height="34" RenderOptions.BitmapScalingMode="HighQuality"/>
+                    <StackPanel Margin="11,0,0,0" VerticalAlignment="Center">
+                        <TextBlock Text="Context Menu" FontSize="14" FontWeight="SemiBold" Foreground="#FFFFFF"/>
+                        <TextBlock Text="Editor" FontSize="12" Foreground="#A2A5AB"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Studio signature: the official ROCIs Apps wordmark -->
+                <Image x:Name="BrandWordmark" DockPanel.Dock="Bottom" Height="15" HorizontalAlignment="Left" Margin="22,4,0,18"
+                       RenderOptions.BitmapScalingMode="HighQuality" Opacity="0.85" ToolTip="ROCIs Apps"/>
+
+                <StackPanel DockPanel.Dock="Bottom" Margin="10,0,10,6">
+                    <Border x:Name="AdminCard" CornerRadius="8" Background="#232428" BorderBrush="#2A2B2F" BorderThickness="1" Padding="12,10" Margin="0,0,0,8">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Ellipse x:Name="AdminDot" Width="8" Height="8" Fill="#FBBF24" VerticalAlignment="Top" Margin="0,5,10,0"/>
+                            <StackPanel Grid.Column="1">
+                                <TextBlock x:Name="TxtAdmin" Text="Standard user" FontWeight="SemiBold" FontSize="12.5"/>
+                                <TextBlock x:Name="TxtAdminSub" Text="Click to run as administrator" FontSize="11.5" Foreground="#7A7D83" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                    <Button x:Name="BtnRestartExplorer" Style="{StaticResource BtnGhost}" ToolTip="Restart Windows Explorer to reload the menus">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Fill="#A2A5AB" Width="13" Height="13" Stretch="Uniform" Margin="0,0,10,0" Data="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z"/>
+                            <TextBlock Text="Restart Explorer"/>
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="BtnOpenBackups" Style="{StaticResource BtnGhost}" ToolTip="Open the folder with .reg backups">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Fill="#A2A5AB" Width="13" Height="13" Stretch="Uniform" Margin="0,0,10,0" Data="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z"/>
+                            <TextBlock Text="Backups folder"/>
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="BtnAbout" Style="{StaticResource BtnGhost}" ToolTip="Version, launch command and links">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Fill="#A2A5AB" Width="13" Height="13" Stretch="Uniform" Margin="0,0,10,0" Data="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"/>
+                            <TextBlock Text="About"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+
+                <StackPanel>
+                    <TextBlock Text="Where it appears" FontSize="12" Foreground="#6C6F75" Margin="22,0,0,8"/>
+                    <ListBox x:Name="NavList" Background="Transparent" BorderThickness="0" ItemContainerStyle="{StaticResource NavItem}"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"/>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <!-- MAIN -->
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <Grid Margin="28,22,24,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock x:Name="TxtTitle" Text="Everything" FontSize="22" FontWeight="SemiBold" Foreground="#FFFFFF"/>
+                    <TextBlock x:Name="TxtSubtitle" Text="" Foreground="#A2A5AB" Margin="0,4,0,0"/>
+                </StackPanel>
+                <Button x:Name="BtnAdd" Grid.Column="1" Style="{StaticResource BtnPrimary}" VerticalAlignment="Center" Padding="14,8">
+                    <StackPanel Orientation="Horizontal">
+                        <Path Fill="#FFFFFF" Width="11" Height="11" Stretch="Uniform" Margin="0,0,8,0" Data="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"/>
+                        <TextBlock Text="New command"/>
+                    </StackPanel>
+                </Button>
+            </Grid>
+
+            <!-- Toolbar -->
+            <Grid x:Name="Toolbar" Grid.Row="1" Margin="28,18,24,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" MaxWidth="360"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Grid>
+                    <TextBox x:Name="TxtSearch" Style="{StaticResource Input}" Padding="32,0,10,0" Tag="Search name, command, DLL..."/>
+                    <Path Fill="#7A7D83" Width="13" Height="13" Stretch="Uniform" HorizontalAlignment="Left" Margin="12,0,0,0" IsHitTestVisible="False"
+                          Data="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z"/>
+                </Grid>
+                <Border x:Name="KindSeg" Grid.Column="1" Background="#151618" BorderBrush="#3A3C41" BorderThickness="1" CornerRadius="7" Padding="2" Margin="12,0,0,0">
+                    <StackPanel Orientation="Horizontal">
+                        <RadioButton x:Name="KindAll" Style="{StaticResource Seg}" GroupName="kind" Content="All" IsChecked="True"/>
+                        <RadioButton x:Name="KindCmd" Style="{StaticResource Seg}" GroupName="kind" Content="Commands"/>
+                        <RadioButton x:Name="KindExt" Style="{StaticResource Seg}" GroupName="kind" Content="Extensions"/>
+                    </StackPanel>
+                </Border>
+                <CheckBox x:Name="ChkBuiltIn" Grid.Column="2" Style="{StaticResource Switch}" Content="Windows built-ins" Margin="18,0,0,0" Foreground="#A2A5AB" VerticalAlignment="Center"
+                          ToolTip="Also list the entries Windows ships with (Open, Print, Properties...)"/>
+                <StackPanel Grid.Column="4" Orientation="Horizontal">
+                    <Button x:Name="BtnRefresh" Style="{StaticResource BtnIcon}" ToolTip="Rescan (F5)" Margin="0,0,6,0">
+                        <Path Fill="#A2A5AB" Width="14" Height="14" Stretch="Uniform" Data="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z"/>
+                    </Button>
+                    <Button x:Name="BtnBackupAll" Style="{StaticResource BtnIcon}" ToolTip="Back up every context menu key to one .reg file">
+                        <Path Fill="#A2A5AB" Width="14" Height="14" Stretch="Uniform" Data="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z"/>
+                    </Button>
+                </StackPanel>
+            </Grid>
+
+            <!-- File type picker -->
+            <StackPanel x:Name="FileTypeBar" Grid.Row="2" Orientation="Horizontal" Margin="28,0,24,10" Visibility="Collapsed">
+                <TextBlock Text="Extension" Foreground="#A2A5AB" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <TextBox x:Name="TxtExt" Style="{StaticResource Input}" Width="96" FontFamily="{StaticResource Mono}" Tag=".pdf"/>
+                <Button x:Name="BtnExtGo" Style="{StaticResource Btn}" Content="Show" Margin="8,0,16,0"/>
+                <ItemsControl x:Name="ExtChips" VerticalAlignment="Center">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button Content="{Binding}" Tag="{Binding}" Style="{StaticResource BtnGhost}" Padding="8,5" FontFamily="Cascadia Mono, Consolas" FontSize="12"/>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+
+            <!-- New menu bar -->
+            <StackPanel x:Name="NewBar" Grid.Row="2" Orientation="Horizontal" Margin="28,0,24,10" Visibility="Collapsed">
+                <TextBlock Text="Add a file type" Foreground="#A2A5AB" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <TextBox x:Name="TxtNewExt" Style="{StaticResource Input}" Width="96" FontFamily="Cascadia Mono, Consolas" Tag=".md"/>
+                <Button x:Name="BtnAddNewType" Style="{StaticResource Btn}" Content="Add to New menu" Margin="8,0,14,0"/>
+                <TextBlock Text="Creates an empty file of that type. Changes show after Explorer restarts." Foreground="#7A7D83" FontSize="12" VerticalAlignment="Center"/>
+            </StackPanel>
+
+            <!-- Send to bar -->
+            <StackPanel x:Name="SendToBar" Grid.Row="2" Orientation="Horizontal" Margin="28,0,24,10" Visibility="Collapsed">
+                <Button x:Name="BtnSendToProgram" Style="{StaticResource Btn}" Content="Add program..." Margin="0,0,8,0"/>
+                <Button x:Name="BtnSendToFolder" Style="{StaticResource Btn}" Content="Add folder..." Margin="0,0,8,0"/>
+                <Button x:Name="BtnSendToOpen" Style="{StaticResource BtnGhost}" Content="Open Send To folder"/>
+            </StackPanel>
+
+            <!-- Broken entries bar -->
+            <Border x:Name="BrokenBar" Grid.Row="2" Background="#14E5323F" BorderBrush="#33E5323F" BorderThickness="1" CornerRadius="8"
+                    Padding="14,9" Margin="28,0,24,12" Visibility="Collapsed">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Foreground="#F2858C" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,16,0"
+                               Text="Left behind by uninstalled programs: they point to files that no longer exist. Removing them is safe; each one is backed up first."/>
+                    <Button x:Name="BtnCleanup" Grid.Column="1" Style="{StaticResource BtnDanger}" Content="Remove all"/>
+                </Grid>
+            </Border>
+
+            <!-- Content -->
+            <Grid Grid.Row="3">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="350"/>
+                </Grid.ColumnDefinitions>
+
+                <Grid x:Name="ListArea" Margin="18,0,12,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Grid Margin="10,0,18,6" TextElement.Foreground="#6C6F75" TextElement.FontSize="11.5">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="44"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="160"/>
+                            <ColumnDefinition Width="84"/>
+                            <ColumnDefinition Width="48"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="1" Text="Name"/>
+                        <TextBlock Grid.Column="2" Text="Appears on"/>
+                        <TextBlock Grid.Column="3" Text="For"/>
+                        <TextBlock Grid.Column="4" Text="On" HorizontalAlignment="Right" Margin="0,0,6,0"/>
+                    </Grid>
+                    <Border Grid.Row="1" BorderBrush="#2A2B2F" BorderThickness="0,1,0,0">
+                        <ListBox x:Name="ItemList" Background="Transparent" BorderThickness="0" Padding="0,4,0,8" SelectionMode="Extended"
+                                 ItemContainerStyle="{StaticResource RowItem}" ItemTemplate="{StaticResource RowTemplate}"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                 VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.ScrollUnit="Pixel"/>
+                    </Border>
+                    <StackPanel x:Name="EmptyState" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed">
+                        <Path Fill="#3A3C41" Width="34" Height="34" Stretch="Uniform" HorizontalAlignment="Center" Data="M3,4H7V8H3V4M9,5V7H21V5H9M3,10H7V14H3V10M9,11V13H21V11H9M3,16H7V20H3V16M9,17V19H21V17H9Z"/>
+                        <TextBlock x:Name="TxtEmpty" Text="Nothing here" FontSize="15" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,14,0,4"/>
+                        <TextBlock x:Name="TxtEmptySub" Text="" Foreground="#7A7D83" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="340"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Detail pane -->
+                <Border x:Name="DetailPane" Grid.Column="1" Background="#232428" BorderBrush="#2A2B2F" BorderThickness="1" CornerRadius="12" Margin="0,0,24,16">
+                    <Grid>
+                        <StackPanel x:Name="DetailEmpty" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="30">
+                            <Path Fill="#3A3C41" Width="30" Height="30" Stretch="Uniform" HorizontalAlignment="Center" Data="M19,4C20.11,4 21,4.9 21,6V18A2,2 0 0,1 19,20H5C3.89,20 3,19.1 3,18V6A2,2 0 0,1 5,4H19M19,18V8H5V18H19Z"/>
+                            <TextBlock Text="Nothing selected" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,12,0,4"/>
+                            <TextBlock Text="Pick an entry to see what it runs, where it lives in the registry, and to edit or remove it." Foreground="#7A7D83" TextAlignment="Center" TextWrapping="Wrap" FontSize="12.5"/>
+                        </StackPanel>
+
+                        <StackPanel x:Name="DetailMulti" Margin="20" Visibility="Collapsed">
+                            <TextBlock x:Name="TxtMultiTitle" FontSize="16" FontWeight="SemiBold" Foreground="#FFFFFF"/>
+                            <TextBlock x:Name="TxtMultiSub" Foreground="#7A7D83" FontSize="12.5" TextWrapping="Wrap" Margin="0,4,0,18"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="8"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Button x:Name="BtnMultiOn" Style="{StaticResource Btn}" Content="Turn all on"/>
+                                <Button x:Name="BtnMultiOff" Grid.Column="2" Style="{StaticResource Btn}" Content="Turn all off"/>
+                            </Grid>
+                            <Button x:Name="BtnMultiDelete" Style="{StaticResource BtnDanger}" Content="Delete all" Margin="0,8,0,0"/>
+                            <TextBlock Foreground="#7A7D83" FontSize="12" TextWrapping="Wrap" Margin="0,14,0,0"
+                                       Text="Every change can be undone from the status bar. Entries installed for all users are skipped unless the editor runs as administrator."/>
+                        </StackPanel>
+
+                        <DockPanel x:Name="DetailBody" Margin="20" Visibility="Collapsed">
+                            <StackPanel DockPanel.Dock="Top">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid Width="44" Height="44" VerticalAlignment="Top">
+                                        <Border CornerRadius="10" Background="#2D2F33"/>
+                                        <Image x:Name="DetailIcon" Width="28" Height="28" RenderOptions.BitmapScalingMode="HighQuality"/>
+                                        <Path x:Name="DetailGlyph" Fill="#7A7D83" Width="20" Height="20" Stretch="Uniform"/>
+                                    </Grid>
+                                    <StackPanel Grid.Column="1" Margin="14,1,0,0" VerticalAlignment="Center">
+                                        <TextBlock x:Name="DetailName" FontSize="16" FontWeight="SemiBold" Foreground="#FFFFFF" TextWrapping="Wrap"/>
+                                        <TextBlock x:Name="DetailKind" FontSize="12" Foreground="#C8CACF" Margin="0,3,0,0"/>
+                                    </StackPanel>
+                                </Grid>
+                                <Border Background="#1B1C1F" CornerRadius="8" Padding="14,11" Margin="0,18,0,0">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel>
+                                            <TextBlock x:Name="DetailState" FontWeight="SemiBold"/>
+                                            <TextBlock x:Name="DetailStateSub" Foreground="#7A7D83" FontSize="11.5" TextWrapping="Wrap" Margin="0,2,10,0"/>
+                                        </StackPanel>
+                                        <ToggleButton x:Name="DetailSwitch" Grid.Column="1" Style="{StaticResource Switch}" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Border>
+                            </StackPanel>
+
+                            <StackPanel DockPanel.Dock="Bottom" Margin="0,12,0,0">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Button x:Name="BtnEdit" Style="{StaticResource Btn}" Content="Edit"/>
+                                    <Button x:Name="BtnDelete" Grid.Column="2" Style="{StaticResource BtnDanger}" Content="Delete"/>
+                                </Grid>
+                                <Grid Margin="0,8,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Button x:Name="BtnRegedit" Style="{StaticResource Btn}" Content="Open in Regedit"/>
+                                    <Button x:Name="BtnCopy" Grid.Column="2" Style="{StaticResource Btn}" Content="Copy command"/>
+                                </Grid>
+                                <Button x:Name="BtnAddSendTo" Style="{StaticResource Btn}" Margin="0,8,0,0"
+                                        ToolTip="Create Send To shortcuts that run this same entry on the files you send">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Path Fill="#C8CACF" Width="12" Height="12" Stretch="Uniform" Margin="0,0,8,0" Data="M2,21L23,12L2,3V10L17,12L2,14V21Z"/>
+                                        <TextBlock Text="Add to Send to"/>
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+
+                            <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="0,18,-10,0" Padding="0,0,10,0">
+                                <ItemsControl x:Name="DetailFields">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Margin="0,0,0,14">
+                                                <TextBlock Text="{Binding Label}" FontSize="11" FontWeight="SemiBold" Foreground="#7A7D83" Margin="0,0,0,3"/>
+                                                <TextBox x:Name="val" Text="{Binding Value, Mode=OneWay}" Style="{StaticResource ReadOnlyText}" FontSize="12.5"/>
+                                            </StackPanel>
+                                            <DataTemplate.Triggers>
+                                                <DataTrigger Binding="{Binding Warn}" Value="True">
+                                                    <Setter TargetName="val" Property="Foreground" Value="#F2858C"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Mono}" Value="True">
+                                                    <Setter TargetName="val" Property="FontFamily" Value="Cascadia Mono, Consolas"/>
+                                                    <Setter TargetName="val" Property="FontSize" Value="12"/>
+                                                    <Setter TargetName="val" Property="Foreground" Value="#FFFFFF"/>
+                                                </DataTrigger>
+                                            </DataTemplate.Triggers>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </DockPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Backups page -->
+                <Grid x:Name="BackupsPanel" Grid.ColumnSpan="2" Margin="18,16,24,16" Visibility="Collapsed">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Grid Margin="10,0,0,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Foreground="#7A7D83" FontSize="12.5" TextWrapping="Wrap" VerticalAlignment="Center" Margin="0,0,16,0"
+                                   Text="Restore puts an entry back exactly as it was in the backup. The current version is backed up first, so a restore can be undone too."/>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                            <Button x:Name="BtnExportSetup" Style="{StaticResource Btn}" Content="Export setup..." Margin="0,0,8,0"
+                                    ToolTip="Save your own commands, submenus, turned-off extensions and the classic-menu setting to a .reg file for another PC"/>
+                            <Button x:Name="BtnImportSetup" Style="{StaticResource Btn}" Content="Import..." Margin="0,0,16,0"
+                                    ToolTip="Add the entries from an exported setup (or any .reg file) to this PC"/>
+                            <Button x:Name="BtnBackupNow" Style="{StaticResource Btn}" Content="Back up everything now" Margin="0,0,8,0"/>
+                            <Button x:Name="BtnBackupFolder" Style="{StaticResource Btn}" Content="Open folder"/>
+                        </StackPanel>
+                    </Grid>
+                    <Border Grid.Row="1" BorderBrush="#2A2B2F" BorderThickness="0,1,0,0">
+                        <ListBox x:Name="BackupList" Background="Transparent" BorderThickness="0" Padding="0,4,0,8"
+                                 ItemContainerStyle="{StaticResource RowItem}" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                 VirtualizingPanel.ScrollUnit="Pixel">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Height="42">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="150"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding WhenText}" FontSize="12.5"/>
+                                            <TextBlock Text="{Binding Action}" FontSize="11.5" Foreground="#C8CACF" Margin="0,2,0,0"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,16,0">
+                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="13.5" TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Text="{Binding KeyText}" Foreground="#7A7D83" FontSize="11.5" FontFamily="Cascadia Mono, Consolas" TextTrimming="CharacterEllipsis" Margin="0,2,0,0" ToolTip="{Binding FileName}"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <Button Tag="restore" Style="{StaticResource Btn}" Content="Restore" Padding="12,5" Margin="0,0,6,0"/>
+                                            <Button Tag="delete" Style="{StaticResource BtnIcon}" Width="30" Height="30" ToolTip="Delete this backup file">
+                                                <Path Fill="#A2A5AB" Width="11" Height="12" Stretch="Uniform" Data="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"/>
+                                            </Button>
+                                        </StackPanel>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Border>
+                    <StackPanel x:Name="BackupsEmpty" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed">
+                        <TextBlock Text="No backups yet" FontSize="15" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,0,0,4"/>
+                        <TextBlock Text="They appear here as soon as you edit or delete something." Foreground="#7A7D83" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Tweaks page: checklist with presets, Run and Undo -->
+                <Grid x:Name="TweaksPanel" Grid.ColumnSpan="2" Margin="18,16,24,16" Visibility="Collapsed">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Grid Margin="10,0,0,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="Presets" Foreground="#A2A5AB" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <ItemsControl x:Name="TweakPresetList" VerticalAlignment="Center">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Button Content="{Binding}" Tag="{Binding}" Style="{StaticResource Btn}" Margin="0,0,8,0" Padding="12,6"/>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <Button x:Name="BtnTweakClear" Style="{StaticResource BtnGhost}" Content="Clear" Padding="10,6"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2" Orientation="Horizontal">
+                            <Button x:Name="BtnTweakUndo" Style="{StaticResource Btn}" Content="Undo selected" Margin="0,0,8,0"
+                                    ToolTip="Put the original values back for the checked tweaks"/>
+                            <Button x:Name="BtnTweakRun" Style="{StaticResource BtnPrimary}" Content="Run tweaks"
+                                    ToolTip="Apply the checked tweaks"/>
+                        </StackPanel>
+                    </Grid>
+                    <Border Grid.Row="1" BorderBrush="#2A2B2F" BorderThickness="0,1,0,0">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <ItemsControl x:Name="TweakList" Margin="10,4,10,8">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid>
+                                            <TextBlock x:Name="hdr" Text="{Binding Title}" FontSize="13" FontWeight="SemiBold" Foreground="#A2A5AB" Margin="2,14,0,8" Visibility="Collapsed"/>
+                                            <Border x:Name="row" Background="#232428" BorderBrush="#2A2B2F" BorderThickness="1" CornerRadius="8" Padding="14,10" Margin="0,0,0,6">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <CheckBox x:Name="chk" Style="{StaticResource Check}" Tag="check" IsChecked="{Binding Checked, Mode=OneWay}" IsEnabled="{Binding Available}">
+                                                        <StackPanel>
+                                                            <TextBlock Text="{Binding Title}" FontWeight="SemiBold" Foreground="#FFFFFF"/>
+                                                            <TextBlock Text="{Binding Desc}" Foreground="#A2A5AB" FontSize="12.5" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                                        </StackPanel>
+                                                    </CheckBox>
+                                                    <ToggleButton x:Name="tgl" Style="{StaticResource Switch}" Tag="toggle" IsChecked="{Binding Applied, Mode=OneWay}" IsEnabled="{Binding Available}" Visibility="Collapsed">
+                                                        <StackPanel>
+                                                            <TextBlock Text="{Binding Title}" FontWeight="SemiBold" Foreground="#FFFFFF"/>
+                                                            <TextBlock Text="{Binding Desc}" Foreground="#A2A5AB" FontSize="12.5" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                                        </StackPanel>
+                                                    </ToggleButton>
+                                                    <Border x:Name="pill" Grid.Column="1" Background="#1F34D399" CornerRadius="10" Padding="9,2,9,3" VerticalAlignment="Center" Margin="12,0,0,0" Visibility="Collapsed">
+                                                        <TextBlock Text="Applied" FontSize="11.5" Foreground="#34D399"/>
+                                                    </Border>
+                                                    <TextBlock x:Name="note" Grid.Column="1" Text="{Binding Note}" FontSize="11.5" Foreground="#7A7D83" VerticalAlignment="Center" Margin="12,0,0,0"/>
+                                                </Grid>
+                                            </Border>
+                                        </Grid>
+                                        <DataTemplate.Triggers>
+                                            <DataTrigger Binding="{Binding Kind}" Value="header">
+                                                <Setter TargetName="hdr" Property="Visibility" Value="Visible"/>
+                                                <Setter TargetName="row" Property="Visibility" Value="Collapsed"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Kind}" Value="toggle">
+                                                <Setter TargetName="chk" Property="Visibility" Value="Collapsed"/>
+                                                <Setter TargetName="tgl" Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding ShowApplied}" Value="True">
+                                                <Setter TargetName="pill" Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                        </DataTemplate.Triggers>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Border>
+                </Grid>
+            </Grid>
+
+            <!-- Status bar -->
+            <Border Grid.Row="4" BorderBrush="#2A2B2F" BorderThickness="0,1,0,0" Padding="28,0,24,0" Height="40">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock x:Name="TxtStatus" Foreground="#7A7D83" FontSize="12" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="560"/>
+                    <Button x:Name="BtnUndo" Grid.Column="1" Style="{StaticResource BtnGhost}" Content="Undo" Foreground="#C8CACF" Padding="8,3" FontSize="12"
+                            HorizontalAlignment="Left" VerticalAlignment="Center" Margin="8,0,0,0" Visibility="Collapsed"/>
+                    <StackPanel x:Name="PendingBar" Grid.Column="2" Orientation="Horizontal" Visibility="Collapsed">
+                        <Ellipse Width="7" Height="7" Fill="#FBBF24" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <TextBlock Text="Restart Explorer to apply extension changes" Foreground="#FBBF24" FontSize="12" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                        <Button x:Name="BtnPendingRestart" Style="{StaticResource Btn}" Content="Restart now" Padding="10,4" FontSize="12"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</Window>

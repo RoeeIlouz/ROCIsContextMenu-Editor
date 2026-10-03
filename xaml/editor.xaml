@@ -1,0 +1,129 @@
+<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Command" Width="640" SizeToContent="Height" ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
+        Background="#1B1C1F" Foreground="#EEEEEC" FontFamily="Segoe UI Variable Text, Segoe UI" FontSize="13"
+        UseLayoutRounding="True" TextOptions.TextFormattingMode="Display">
+    <Window.Resources>
+        <!--RES-->
+    </Window.Resources>
+    <DockPanel Background="#1B1C1F">
+        <Border DockPanel.Dock="Bottom" Background="#151618" BorderBrush="#2A2B2F" BorderThickness="0,1,0,0" Padding="28,14">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock x:Name="EdError" Foreground="#EF5A64" TextWrapping="Wrap" VerticalAlignment="Center" Margin="0,0,16,0"/>
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button x:Name="EdCancel" Style="{StaticResource Btn}" Content="Cancel" IsCancel="True" MinWidth="86"/>
+                    <Button x:Name="EdSave" Style="{StaticResource BtnPrimary}" Content="Save" IsDefault="True" MinWidth="86" Margin="8,0,0,0"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="28,24,28,20">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel>
+                        <TextBlock x:Name="EdTitle" FontSize="18" FontWeight="SemiBold" Foreground="#FFFFFF"/>
+                        <TextBlock x:Name="EdSubtitle" Foreground="#A2A5AB" TextWrapping="Wrap" Margin="0,4,16,0"/>
+                    </StackPanel>
+                    <Border x:Name="EdModeRow" Grid.Column="1" Background="#151618" BorderBrush="#3A3C41" BorderThickness="1" CornerRadius="7" Padding="2" VerticalAlignment="Top">
+                        <StackPanel Orientation="Horizontal">
+                            <RadioButton x:Name="EdModeCmd" Style="{StaticResource Seg}" GroupName="mode" Content="Command" IsChecked="True"/>
+                            <RadioButton x:Name="EdModeSub" Style="{StaticResource Seg}" GroupName="mode" Content="Submenu"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+                <TextBlock Style="{StaticResource FieldLabel}" Text="Name"/>
+                <TextBox x:Name="EdName" Style="{StaticResource Input}" Tag="Text shown in the menu, e.g. Open with Notepad++"/>
+
+                <StackPanel x:Name="EdCommandSection">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="Command"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="EdCommand" Style="{StaticResource Input}" FontFamily="Cascadia Mono, Consolas" FontSize="12.5" Tag="&quot;C:\Path\App.exe&quot; &quot;%1&quot;"/>
+                        <Button x:Name="EdBrowseExe" Grid.Column="1" Style="{StaticResource Btn}" Content="Browse..." Margin="8,0,0,0"/>
+                        <Button x:Name="EdTest" Grid.Column="2" Style="{StaticResource Btn}" Content="Test" Margin="8,0,0,0"
+                                ToolTip="Run the command now on a file or folder you pick, the way Explorer would"/>
+                    </Grid>
+                    <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                        <TextBlock Text="Insert" Foreground="#7A7D83" FontSize="12" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                        <Button x:Name="EdTok1" Style="{StaticResource BtnGhost}" Padding="6,3" FontSize="12" ToolTip="Path of the file or folder that was right-clicked">
+                            <TextBlock><Run Text="%1" FontFamily="Cascadia Mono, Consolas" Foreground="#C8CACF"/><Run Text="  clicked item"/></TextBlock>
+                        </Button>
+                        <Button x:Name="EdTokV" Style="{StaticResource BtnGhost}" Padding="6,3" FontSize="12" ToolTip="Folder path; use this for folder and desktop background">
+                            <TextBlock><Run Text="%V" FontFamily="Cascadia Mono, Consolas" Foreground="#C8CACF"/><Run Text="  folder path"/></TextBlock>
+                        </Button>
+                    </StackPanel>
+                </StackPanel>
+
+                <TextBlock Style="{StaticResource FieldLabel}" Text="Icon"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid Width="34" Height="34" Margin="0,0,8,0">
+                        <Border CornerRadius="7" Background="#2D2F33"/>
+                        <Image x:Name="EdIconPreview" Width="20" Height="20" RenderOptions.BitmapScalingMode="HighQuality"/>
+                    </Grid>
+                    <TextBox x:Name="EdIcon" Grid.Column="1" Style="{StaticResource Input}" FontFamily="Cascadia Mono, Consolas" FontSize="12.5" Tag="Optional. .ico, .exe, or file.dll,-123"/>
+                    <Button x:Name="EdBrowseIcon" Grid.Column="2" Style="{StaticResource Btn}" Content="Browse..." Margin="8,0,0,0"/>
+                </Grid>
+
+                <TextBlock Style="{StaticResource FieldLabel}" Text="Appears when you right-click"/>
+                <WrapPanel>
+                    <RadioButton x:Name="EdLocFiles" Style="{StaticResource Chip}" GroupName="loc" Content="Any file"/>
+                    <RadioButton x:Name="EdLocFolders" Style="{StaticResource Chip}" GroupName="loc" Content="A folder"/>
+                    <RadioButton x:Name="EdLocBackground" Style="{StaticResource Chip}" GroupName="loc" Content="Folder background"/>
+                    <RadioButton x:Name="EdLocDesktop" Style="{StaticResource Chip}" GroupName="loc" Content="Desktop"/>
+                    <RadioButton x:Name="EdLocDrives" Style="{StaticResource Chip}" GroupName="loc" Content="A drive"/>
+                    <RadioButton x:Name="EdLocAll" Style="{StaticResource Chip}" GroupName="loc" Content="Files and folders"/>
+                    <RadioButton x:Name="EdLocType" Style="{StaticResource Chip}" GroupName="loc" Content="One file type"/>
+                    <RadioButton x:Name="EdLocOther" Style="{StaticResource Chip}" GroupName="loc" Visibility="Collapsed"/>
+                    <TextBox x:Name="EdExt" Style="{StaticResource Input}" Width="90" Height="30" FontFamily="Cascadia Mono, Consolas" Tag=".pdf" Margin="0,0,6,6" Visibility="Collapsed"/>
+                </WrapPanel>
+
+                <TextBlock Style="{StaticResource FieldLabel}" Text="Install for"/>
+                <WrapPanel>
+                    <RadioButton x:Name="EdScopeUser" Style="{StaticResource Chip}" GroupName="scope" Content="Just me" IsChecked="True"/>
+                    <RadioButton x:Name="EdScopeAll" Style="{StaticResource Chip}" GroupName="scope" Content="All users (needs admin)"/>
+                </WrapPanel>
+
+                <StackPanel x:Name="EdGroupSection">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="Inside submenu"/>
+                    <WrapPanel x:Name="EdGroups"/>
+                    <TextBlock x:Name="EdGroupHint" Foreground="#7A7D83" FontSize="12" TextWrapping="Wrap" Margin="2,0,0,0"
+                               Text="No submenus for this location yet. Create one with New command, Type: Submenu."/>
+                </StackPanel>
+
+                <Border Background="#232428" BorderBrush="#2A2B2F" BorderThickness="1" CornerRadius="8" Padding="16,12" Margin="0,16,0,0">
+                    <StackPanel>
+                        <WrapPanel>
+                            <CheckBox x:Name="EdShift" Style="{StaticResource Switch}" Content="Only with Shift held" Margin="0,0,24,0"/>
+                            <CheckBox x:Name="EdShield" Style="{StaticResource Switch}" Content="Show admin shield icon"/>
+                        </WrapPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,12,0,-6">
+                            <TextBlock Text="Position" Foreground="#A2A5AB" VerticalAlignment="Center" Margin="0,0,12,6"/>
+                            <RadioButton x:Name="EdPosDefault" Style="{StaticResource Chip}" GroupName="pos" Content="Default" IsChecked="True"/>
+                            <RadioButton x:Name="EdPosTop" Style="{StaticResource Chip}" GroupName="pos" Content="Top"/>
+                            <RadioButton x:Name="EdPosBottom" Style="{StaticResource Chip}" GroupName="pos" Content="Bottom"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</Window>
