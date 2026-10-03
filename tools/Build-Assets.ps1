@@ -6,8 +6,9 @@
     the R's leg (like Tasks' check and Schedule's grid). Also writes a small copy of the dark
     wordmark for the sidebar. Run after changing the brand kit; Compile.ps1 embeds assets\*.
 #>
-param([string]$BrandKit = (Join-Path $PSScriptRoot '..\..\..\ROCIsApps-Assets'))
+param([string]$BrandKit = (Join-Path $PSScriptRoot '..\..\..\ROCIsApps\ROCIsApps-Assets'))
 $ErrorActionPreference = 'Stop'
+if (-not (Test-Path -LiteralPath $BrandKit)) { throw "Brand kit not found at $BrandKit. Pass -BrandKit <path to ROCIsApps-Assets>." }
 Add-Type -AssemblyName System.Drawing
 $out = Join-Path $PSScriptRoot '..\assets'
 New-Item -ItemType Directory -Path $out -Force | Out-Null
