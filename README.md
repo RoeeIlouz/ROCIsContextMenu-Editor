@@ -110,3 +110,7 @@ Files in each folder are included in name order. The compiler also:
 Invoke-Scan
 $App.Items | Where-Object { -not $_.IsBuiltIn } | Format-Table Kind, Hive, Name, LocLabel, Enabled
 ```
+
+## License
+
+MIT. See [LICENSE](LICENSE).
