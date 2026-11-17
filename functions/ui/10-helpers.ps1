@@ -237,6 +237,7 @@ function Find-VisualChild($Element, [type]$Type) {
 function Test-InNav($Item, [string]$Nav) {
     if ($Nav -eq 'all') { return $Item.Kind -eq 'Modern' -or @($Item.LocIds | Where-Object { $_ -notin 'filetypes', 'newmenu', 'sendto' }).Count -gt 0 }
     if ($Nav -eq 'broken') { return $Item.Broken }
+    if ($Nav -eq 'more') { return $Item.LocIds -contains $App.MorePlace }
     return $Item.LocIds -contains $Nav
 }
 
@@ -262,6 +263,8 @@ $NavText = @{
     filetypes  = @('File types', 'Entries that only appear for one extension')
     newmenu    = @('New menu', 'The file types offered under New when you right-click a folder background')
     sendto     = @('Send to', 'Shortcuts in your Send To folder')
+    more       = @('Other places', 'Menus for shortcuts, programs, libraries, This PC, the Recycle Bin and right-drag')
+    preview    = @('Menu preview', 'The real right-click menu, as Windows builds it. Drag rows to reorder them')
     broken     = @('Broken entries', 'Entries that point to a program or DLL that no longer exists')
     backups    = @('Backups', 'Every edit and delete saves the old version here first')
     tweaks     = @('Tweaks', 'Check what you want or pick a preset, then Run tweaks. Undo selected puts the original values back')
@@ -275,12 +278,13 @@ function Update-View {
     $plain = @($everything | Where-Object { $App.ShowBuiltIn -or -not $_.IsBuiltIn })
 
     foreach ($n in $NavEntries) {
-        if ($n.Id -eq 'tweaks' -or $n.Id -eq 'backups') { continue }
+        if ($n.Id -in 'tweaks', 'backups', 'preview') { continue }
         $src = if ($n.Id -eq 'broken') { $all } elseif ($KindlessNavs -contains $n.Id) { $plain } else { $base }
-        $n.Count = [string]@($src | Where-Object { Test-InNav $_ $n.Id }).Count
+        $n.Count = if ($n.Id -eq 'more') { [string]@($src | Where-Object { Test-InMorePlaces $_ }).Count }
+                   else { [string]@($src | Where-Object { Test-InNav $_ $n.Id }).Count }
     }
 
-    if ($App.Nav -eq 'tweaks' -or $App.Nav -eq 'backups') { return }
+    if ($App.Nav -in 'tweaks', 'backups', 'preview') { return }
 
     $src = if ($App.Nav -eq 'broken') { $all } elseif ($KindlessNavs -contains $App.Nav) { $plain } else { $base }
     $inNav = @($src | Where-Object { Test-InNav $_ $App.Nav })
@@ -293,7 +297,9 @@ function Update-View {
     $off = @($inNav | Where-Object { -not $_.Enabled }).Count
     $sub = "$($inNav.Count) entries"
     if ($off) { $sub += ", $off turned off" }
-    if ($App.Nav -eq 'filetypes') { $sub = "$($NavText.filetypes[1]): $($App.Ext)  /  $sub" } else { $sub = "$($NavText[$App.Nav][1])  /  $sub" }
+    if ($App.Nav -eq 'filetypes') { $sub = "$($NavText.filetypes[1]): $($App.Ext)  /  $sub" }
+    elseif ($App.Nav -eq 'more') { $sub = "$($MorePlaces[$App.MorePlace])  /  $sub" }
+    else { $sub = "$($NavText[$App.Nav][1])  /  $sub" }
     $U.TxtSubtitle.Text = $sub
 
     if ($App.Nav -eq 'broken') {
@@ -391,4 +397,5 @@ function Invoke-Refresh([switch]$Rescan, [string]$SelectId) {
     }
     if ($SelectId -and $U.ItemList.SelectedItem) { $U.ItemList.ScrollIntoView($U.ItemList.SelectedItem) }
     Update-Detail
+    if ($App.Nav -eq 'preview') { Update-Preview }
 }

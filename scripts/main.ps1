@@ -13,7 +13,11 @@ foreach ($n in 'NavList', 'AdminCard', 'AdminDot', 'TxtAdmin', 'TxtAdminSub', 'B
                'BackupsPanel', 'BackupList', 'BackupsEmpty', 'BtnBackupNow', 'BtnBackupFolder', 'KindSeg', 'NewBar', 'TxtNewExt',
                'BtnAddNewType', 'SendToBar', 'BtnSendToProgram', 'BtnSendToFolder', 'BtnSendToOpen', 'DetailMulti', 'TxtMultiTitle',
                'TxtMultiSub', 'BtnMultiOn', 'BtnMultiOff', 'BtnMultiDelete', 'BtnExportSetup', 'BtnImportSetup', 'BtnAddSendTo',
-               'BrandIcon', 'BrandWordmark', 'BtnAbout') {
+               'BrandIcon', 'BrandWordmark', 'BtnAbout', 'MoreBar',
+               'PreviewPanel', 'PreviewTargets', 'ChkPreviewShift', 'BtnPreviewRefresh', 'PreviewScroll', 'TxtPreviewSubject', 'PreviewColumns',
+               'PreviewError', 'TxtPreviewError', 'PvHelp', 'PvDetail', 'PvIcon', 'PvName', 'PvKind', 'PvMoveBox', 'PvMoveTitle', 'PvMoveText',
+               'PvToggleRow', 'PvSwitch', 'PvButtons', 'BtnPvEdit', 'BtnPvTop', 'BtnPvBottom', 'BtnPvUnpin', 'BtnPvReset', 'BtnPvResetSendTo',
+               'TxtPvOff', 'TxtPvOffEmpty', 'PvOffList') {
     $U[$n] = $Window.FindName($n)
 }
 $U.BrandIcon.Source = Get-AssetImage 'app-icon-64.png'
@@ -21,16 +25,18 @@ $U.BrandWordmark.Source = Get-AssetImage 'wordmark.png'
 
 $G.Broken  = 'M13,14H11V10H13M13,18H11V16H13M1,21H23L12,2L1,21Z'
 $G.History = 'M13.5,8H12V13L16.28,15.54L17,14.33L13.5,12.25V8M13,3A9,9 0 0,0 4,12H1L4.96,16.03L9,12H6A7,7 0 0,1 13,5A7,7 0 0,1 20,12A7,7 0 0,1 13,19C11.07,19 9.32,18.21 8.06,16.94L6.64,18.36C8.27,20 10.5,21 13,21A9,9 0 0,0 22,12A9,9 0 0,0 13,3'
+$G.Preview = 'M4,3H20A1,1 0 0,1 21,4V20A1,1 0 0,1 20,21H4A1,1 0 0,1 3,20V4A1,1 0 0,1 4,3M5,5V19H19V5H5M7,7H17V9H7V7M7,11H17V13H7V11M7,15H13V17H7V15Z'
+$G.More    = 'M16,12A2,2 0 0,1 18,10A2,2 0 0,1 20,12A2,2 0 0,1 18,14A2,2 0 0,1 16,12M10,12A2,2 0 0,1 12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12M4,12A2,2 0 0,1 6,10A2,2 0 0,1 8,12A2,2 0 0,1 6,14A2,2 0 0,1 4,12Z'
 
 $NavEntries = [System.Collections.ObjectModel.ObservableCollection[object]]::new()
 foreach ($d in @(
     @('all', $G.List), @('files', $G.File), @('folders', $G.Folder), @('background', $G.FolderBg),
     @('desktop', $G.Desktop), @('drives', $G.Drive), @('filetypes', $G.FileType), @('newmenu', $G.NewFile), @('sendto', $G.Send),
-    @('broken', $G.Broken), @('backups', $G.History), @('tweaks', $G.Tweak)
+    @('more', $G.More), @('preview', $G.Preview), @('broken', $G.Broken), @('backups', $G.History), @('tweaks', $G.Tweak)
 )) {
     $e = [CME.NavEntry]::new()
     $e.Id = $d[0]; $e.Label = $NavText[$d[0]][0]; $e.Glyph = $d[1]
-    $e.Margin = if ($d[0] -eq 'broken') { '0,14,0,0' } else { '0' }
+    $e.Margin = if ($d[0] -eq 'preview') { '0,10,0,0' } else { '0' }
     $NavEntries.Add($e)
 }
 $U.NavList.ItemsSource = $NavEntries
@@ -56,11 +62,13 @@ $U.NavList.Add_SelectionChanged({
     if (-not $nav) { return }
     $App.Nav = $nav.Id
     $U.TxtTitle.Text = $NavText[$nav.Id][0]
-    $page = switch ($nav.Id) { 'tweaks' { 'tweaks' } 'backups' { 'backups' } default { 'list' } }
+    $page = switch ($nav.Id) { 'tweaks' { 'tweaks' } 'backups' { 'backups' } 'preview' { 'preview' } default { 'list' } }
     $U.TweaksPanel.Visibility = if ($page -eq 'tweaks') { 'Visible' } else { 'Collapsed' }
     $U.BackupsPanel.Visibility = if ($page -eq 'backups') { 'Visible' } else { 'Collapsed' }
+    $U.PreviewPanel.Visibility = if ($page -eq 'preview') { 'Visible' } else { 'Collapsed' }
     foreach ($el in $U.ListArea, $U.DetailPane, $U.Toolbar) { $el.Visibility = if ($page -eq 'list') { 'Visible' } else { 'Collapsed' } }
-    $U.BtnAdd.Visibility = if ($page -eq 'list' -and $nav.Id -notin 'broken', 'newmenu', 'sendto') { 'Visible' } else { 'Collapsed' }
+    $U.BtnAdd.Visibility = if ($page -eq 'list' -and $nav.Id -notin 'broken', 'newmenu', 'sendto', 'more') { 'Visible' } else { 'Collapsed' }
+    $U.MoreBar.Visibility = if ($nav.Id -eq 'more') { 'Visible' } else { 'Collapsed' }
     $U.NewBar.Visibility = if ($nav.Id -eq 'newmenu') { 'Visible' } else { 'Collapsed' }
     $U.SendToBar.Visibility = if ($nav.Id -eq 'sendto') { 'Visible' } else { 'Collapsed' }
     $U.KindSeg.Visibility = if ($KindlessNavs -contains $nav.Id) { 'Collapsed' } else { 'Visible' }
@@ -69,8 +77,41 @@ $U.NavList.Add_SelectionChanged({
     switch ($page) {
         'tweaks'  { $U.TxtSubtitle.Text = $NavText.tweaks[1]; Update-Tweaks }
         'backups' { Update-Backups }
+        'preview' { Initialize-PreviewPage; Update-Preview }
         default   { $U.ItemList.SelectedItem = $null; Update-View; Update-Detail }
     }
+})
+
+# Menu preview page
+$U.PreviewTargets.AddHandler([System.Windows.Controls.Primitives.ButtonBase]::ClickEvent, [System.Windows.RoutedEventHandler]{
+    param($s, $e)
+    $id = [string]$e.OriginalSource.Tag
+    if (-not $id -or $id -eq $App.PreviewTarget) { return }
+    $App.PreviewTarget = $id
+    $Pv.Path = @(); $Pv.Selected = $null
+    Update-Preview
+})
+$U.ChkPreviewShift.Add_Click({ $App.PreviewShift = [bool]$U.ChkPreviewShift.IsChecked; Update-Preview })
+$U.BtnPreviewRefresh.Add_Click({ Invoke-Refresh -Rescan })
+$U.PvSwitch.Add_Click({ if ($Pv.Selected -and $Pv.Selected.Entry) { Invoke-Toggle $Pv.Selected.Entry ([bool]$U.PvSwitch.IsChecked) } })
+$U.BtnPvEdit.Add_Click({ if ($Pv.Selected -and $Pv.Selected.Entry) { Invoke-Edit $Pv.Selected.Entry } })
+$U.BtnPvTop.Add_Click({ Invoke-PreviewPin 'Top' })
+$U.BtnPvBottom.Add_Click({ Invoke-PreviewPin 'Bottom' })
+$U.BtnPvUnpin.Add_Click({ Invoke-PreviewPin '' })
+$U.BtnPvReset.Add_Click({ Invoke-PreviewReset })
+$U.BtnPvResetSendTo.Add_Click({ Invoke-PreviewResetSendTo })
+$U.PvOffList.AddHandler([System.Windows.Controls.Primitives.ButtonBase]::ClickEvent, [System.Windows.RoutedEventHandler]{
+    param($s, $e)
+    $tb = $e.OriginalSource
+    if ($tb -is [System.Windows.Controls.Primitives.ToggleButton] -and $tb.DataContext) { Invoke-Toggle $tb.DataContext ([bool]$tb.IsChecked) }
+})
+
+# Other places page
+Initialize-MorePlaces
+$U.MoreBar.AddHandler([System.Windows.Controls.Primitives.ButtonBase]::ClickEvent, [System.Windows.RoutedEventHandler]{
+    param($s, $e)
+    $id = [string]$e.OriginalSource.Tag
+    if ($id) { $App.MorePlace = $id; $U.ItemList.SelectedItem = $null; Update-View; Update-Detail }
 })
 
 $U.BtnUndo.Add_Click({ Invoke-Undo })

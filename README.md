@@ -41,10 +41,21 @@ Windows builds the right-click menu from three different sources. The editor lis
 | Shell extension | `<class>\shellex\ContextMenuHandlers` (7-Zip, PowerToys, antivirus, ...) | CLSID added to `Shell Extensions\Blocked` |
 | Windows 11 menu | Packaged apps declaring `windows.fileExplorerContextMenus` (Terminal, Notepad, NanaZip, Paint, ...) | CLSID added to `Shell Extensions\Blocked` |
 
-The sidebar filters entries by where they appear: files, folders, folder background, desktop, drives, or one file type. That file-type view combines `SystemFileAssociations\.ext`, the extension's ProgID, its perceived type, and the default app's ProgID. Windows' own entries (Open, Print, Properties, ...) are hidden until you turn on **Windows built-ins**.
+The sidebar filters entries by where they appear: files, folders, folder background, desktop, drives, or one file type. **Other places** covers the rest: shortcuts (`lnkfile`), programs (`exefile`), libraries, This PC, the Recycle Bin, and the right-drag menu (`shellex\DragDropHandlers`, the menu you get when you drop files with the right mouse button). That file-type view combines `SystemFileAssociations\.ext`, the extension's ProgID, its perceived type, and the default app's ProgID. Windows' own entries (Open, Print, Properties, ...) are hidden until you turn on **Windows built-ins**.
 
 ## What you can do
 
+- **Menu preview**: shows the full right-click menu (Show more options) exactly as Windows builds it, for a sample file, folder, folder background, desktop, drive, shortcut, program, This PC or the Recycle Bin, with or without Shift held. It asks Windows for the menu through the same shell API Explorer uses, so Explorer's own rows (Cut, Copy, Rename, Properties...) and every submenu, including Send to, are there. Click a row with an arrow to open its submenu, select a row to turn it off, edit it or pin it, and turn entries back on from "Turned off here".
+  - **Drag rows to reorder them.** Windows has no menu order setting; each kind of entry sorts its own way, so a row can only move among its own kind (a blue line shows where it can go, and the status bar says why when it can't):
+
+    | Kind | Windows orders them by | Moving one |
+    |------|------------------------|------------|
+    | Command | Key name, within its class (`*`, then `AllFilesystemObjects`, ...), with `Position=Top/Bottom` first/last | Renames its key (the label is kept in `MUIVerb`; the old name is saved in `CMEOrigKey` for Reset position). Pin to top puts it above everything, even Open |
+    | Shell extension | Handler key name, within its class | Renames its handler key, the same way |
+    | Send to item | Display name: single items, then submenu folders, then drives | Puts invisible zero-width spaces in front of its display name in `desktop.ini`; the file keeps its name. "Reset Send to order" undoes it |
+
+  - Fixed in place: Windows 11 app items (NanaZip, Terminal, PowerRename...), Send to itself, Explorer's own rows, and standard verbs such as Open and Edit, whose key names are what make them work. Their rows show a lock; hover one to see why.
+  - Every move is backed up and undoable. Command and extension moves show up on the next right-click; Explorer can keep showing the old Send to order until it restarts, so the status bar offers a restart.
 - Turn any entry on or off with its switch. Extension changes apply after an Explorer restart; the status bar offers one.
 - Add or edit commands: name, command line (`%1` for the clicked item, `%V` for the folder), icon, location, Shift-only, UAC shield, and position. You can also move a command to another location or scope.
 - Group commands into **submenus**. In New command, switch Type to Submenu, then add commands and choose it under "Inside submenu". You can also select a submenu first and click New command. Submenus use the static `SubCommands=""` + nested `shell` key format, so moving a command in or out of one is just an edit.
@@ -80,11 +91,11 @@ The source is split into small files, and `Compile.ps1` stitches them into the s
 |------|----------|
 | `scripts\header.ps1` | Help block and `param()`; always first in the output |
 | `scripts\start.ps1` | Assemblies, native types, launch mode, state and constants |
-| `functions\core\*.ps1` | Scanning, registry, New menu, Send To, bridge, actions, presets and tweak engine. These work without a window, so `-LibraryOnly` stops after them |
-| `functions\ui\*.ps1` | Dialogs, views, undo, the command editor and the Tweaks page |
+| `functions\core\*.ps1` | Scanning, registry, menu preview and reordering, New menu, Send To, bridge, actions, presets and tweak engine. These work without a window, so `-LibraryOnly` stops after them |
+| `functions\ui\*.ps1` | Dialogs, views, undo, the command editor, the Tweaks page and the Menu preview page |
 | `scripts\main.ps1` | Builds the window, wires events, starts |
 | `xaml\*.xaml` | The main window, the command editor, message and About dialogs, and shared styles |
-| `native\*.cs` | Win32 interop (`Native.cs`) and the Send To bridge (`CmeSendTo.cs`), compiled at runtime |
+| `native\*.cs` | Win32 interop and the menu reader (`Native.cs`), and the Send To bridge (`CmeSendTo.cs`), compiled at runtime |
 | `config\tweaks.json` | Tweak definitions: `Content`, `Description`, `category`, `registry` with `Value`/`OriginalValue`/`<RemoveEntry>`, `InvokeScript`/`UndoScript`, `Type: "Toggle"`, `DetectScript`, `UnavailableScript` and `RestartExplorer` |
 | `config\preset.json` | Preset name to list of tweak ids |
 | `assets\` | App icon and wordmark, embedded by the compiler. `tools\Build-Assets.ps1` rebuilds them from the ROCIs Apps brand files |
@@ -109,6 +120,9 @@ Files in each folder are included in name order. The compiler also:
 . .\ContextMenuEditor.ps1 -LibraryOnly
 Invoke-Scan
 $App.Items | Where-Object { -not $_.IsBuiltIn } | Format-Table Kind, Hive, Name, LocLabel, Enabled
+
+# The real menu for a sample file, and which rows can move
+(Get-MenuPreview 'file' $false).Rows | Format-Table Text, Movable, Group, Lock
 ```
 
 ## License

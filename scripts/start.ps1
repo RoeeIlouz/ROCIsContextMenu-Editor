@@ -63,6 +63,11 @@ $App = @{
     ShowBuiltIn = $false
     Search      = ''
     Ext         = '.txt'
+    MorePlace   = 'shortcuts'
+    PreviewTarget = 'file'
+    PreviewShift  = $false
+    Preview     = $null
+    SendToExtras = $null
     LastBackup  = $null
     Undo        = $null
 }
@@ -83,6 +88,28 @@ $BaseKeys = [ordered]@{
     'Directory\Background' = @{ Label = 'Background';      Locs = @('background', 'desktop') }
     'DesktopBackground'    = @{ Label = 'Desktop';         Locs = @('desktop') }
     'Drive'                = @{ Label = 'Drives';          Locs = @('drives') }
+    'lnkfile'              = @{ Label = 'Shortcuts';       Locs = @('shortcuts') }
+    'exefile'              = @{ Label = 'Programs';        Locs = @('programs') }
+    'LibraryFolder'        = @{ Label = 'Libraries';       Locs = @('libraries') }
+    'CLSID\{20D04FE0-3AEA-1069-A2D8-08002B30309D}' = @{ Label = 'This PC'; Locs = @('thispc') }
+    'CLSID\{645FF040-5081-101B-9F08-00AA002F954E}' = @{ Label = 'Recycle Bin'; Locs = @('recyclebin') }
+}
+
+# Right-drag menus (drop files with the right mouse button): handlers under shellex\DragDropHandlers.
+$DragDropBases = [ordered]@{
+    'Directory' = @{ Label = 'Right-drag onto a folder'; Locs = @('dragdrop') }
+    'Folder'    = @{ Label = 'Right-drag onto a folder'; Locs = @('dragdrop') }
+    'Drive'     = @{ Label = 'Right-drag onto a drive';  Locs = @('dragdrop') }
+}
+
+# The places the "Other places" page can show, in chip order.
+$MorePlaces = [ordered]@{
+    shortcuts  = 'Shortcuts'
+    programs   = 'Programs (.exe)'
+    libraries  = 'Libraries'
+    thispc     = 'This PC'
+    recyclebin = 'Recycle Bin'
+    dragdrop   = 'Right-drag menu'
 }
 
 $SystemVerbs = [System.Collections.Generic.HashSet[string]]::new([string[]]@(

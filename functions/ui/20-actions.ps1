@@ -24,6 +24,12 @@ function Invoke-Undo {
         Set-Status "Undone: $($r.Label)."
         return
     }
+    if ($r.Type -eq 'desktopini') {
+        try { Restore-DesktopIni $r.Backups; Set-Status "Undone: $($r.Label). Restart Explorer if Send to still shows the old order." }
+        catch { [void](Show-Message -Title 'Could not undo' -Text $_.Exception.Message) }
+        Invoke-Refresh -Rescan
+        return
+    }
     if ($r.Type -eq 'toggle') {
         Invoke-Scan
         $items = foreach ($t in $r.Items) { $App.Items | Where-Object { $_.Id -eq $t.Id } | Select-Object -First 1 }
