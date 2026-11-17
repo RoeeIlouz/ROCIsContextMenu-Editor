@@ -8,7 +8,7 @@ function Complete-Entry([hashtable]$d) {
         IsBuiltIn = $false; Extended = $false; Shield = $false; Position = ''; Clsid = ''; Dll = ''; Package = ''
         BlockedNames = @{}; DashPaths = @(); Delegate = $false; Submenu = $false; ShellPath = ''
         ParentName = ''; ParentPath = ''; Children = 0; Broken = $false; BrokenReason = ''; Editable = $true
-        FilePath = ''; Target = ''; Added = $false
+        FilePath = ''; Target = ''; Added = $false; OrigKey = ''; DragDrop = $false
     }
     foreach ($k in $defaults.Keys) { if (-not $d.ContainsKey($k)) { $d[$k] = $defaults[$k] } }
 
@@ -158,6 +158,7 @@ function Read-Verbs([string]$Hive, [string]$Base, $Info, $Out, [string]$ShellPat
                     Enabled = -not (($valueNames -contains 'LegacyDisable') -or ($valueNames -contains 'ProgrammaticAccessOnly'))
                     IsBuiltIn = $builtIn; Extended = $valueNames -contains 'Extended'; Shield = $valueNames -contains 'HasLUAShield'
                     Position = [string]$vk.GetValue('Position'); Delegate = $delegate; Submenu = $submenu
+                    OrigKey = [string]$vk.GetValue('CMEOrigKey')
                     Editable = -not ($submenu -and -not $nestedShell -and $externalSub)
                     ParentName = $ParentName; ParentPath = $ParentPath; Children = $childCount
                     Broken = [bool]$brokenReason; BrokenReason = $brokenReason
@@ -168,23 +169,25 @@ function Read-Verbs([string]$Hive, [string]$Base, $Info, $Out, [string]$ShellPat
     } finally { $pk.Close() }
 }
 
-function Read-Handlers([string]$Hive, [string]$Base, $Info, $Map) {
-    $hPath = "Software\Classes\$Base\shellex\ContextMenuHandlers"
+# $Container is ContextMenuHandlers (the right-click menu) or DragDropHandlers (the right-drag menu).
+function Read-Handlers([string]$Hive, [string]$Base, $Info, $Map, [string]$Container = 'ContextMenuHandlers') {
+    $hPath = "Software\Classes\$Base\shellex\$Container"
+    $dragDrop = $Container -eq 'DragDropHandlers'
     $pk = $null
     try { $pk = (Get-HiveRoot $Hive).OpenSubKey($hPath) } catch {}
     if (-not $pk) { return }
     try {
         foreach ($keyName in $pk.GetSubKeyNames()) {
-            $value = ''
+            $value = ''; $origKey = ''
             try {
                 $hk = $pk.OpenSubKey($keyName)
-                if ($hk) { $value = [string]$hk.GetValue(''); $hk.Close() }
+                if ($hk) { $value = [string]$hk.GetValue(''); $origKey = [string]$hk.GetValue('CMEOrigKey'); $hk.Close() }
             } catch {}
             $clsid = ConvertTo-Clsid $value
             if (-not $clsid) { $clsid = ConvertTo-Clsid $keyName }
             if (-not $clsid) { continue }
 
-            $mapKey = "$Hive|$clsid"
+            $mapKey = if ($dragDrop) { "$Hive|$clsid|drag" } else { "$Hive|$clsid" }
             if (-not $Map.Contains($mapKey)) {
                 $ci = Get-ClsidInfo $clsid
                 $keyIsGuid = [bool](ConvertTo-Clsid $keyName)
@@ -195,7 +198,7 @@ function Read-Handlers([string]$Hive, [string]$Base, $Info, $Map) {
                 $Map[$mapKey] = @{
                     Broken = [bool]$brokenReason; BrokenReason = $brokenReason
                     Id = "ext|$mapKey"; Kind = 'Extension'; Name = $name; Sub = $sub; KeyName = $keyName; Hive = $Hive
-                    Clsid = $clsid; Dll = $ci.Dll; IconSpec = $ci.Dll; BaseKey = $Base
+                    Clsid = $clsid; Dll = $ci.Dll; IconSpec = $ci.Dll; BaseKey = $Base; OrigKey = $origKey; DragDrop = $dragDrop
                     IsBuiltIn = ($Hive -eq 'HKLM') -and $ci.Dll -and $ci.Dll.StartsWith($env:SystemRoot, [StringComparison]::OrdinalIgnoreCase)
                     LocIdList = [System.Collections.Generic.List[string]]::new()
                     LabelList = [System.Collections.Generic.List[string]]::new()
@@ -265,6 +268,9 @@ function Get-PackagedRecords {
                 $pk.Close()
                 if (-not $root) { continue }
                 $manifest = Join-Path $root 'AppxManifest.xml'
+                # Sparse packages (PowerToys, Quick Share...) point their root at the app's own folder; their
+                # manifest stays in the package's folder under WindowsApps, which users can read.
+                if (-not [IO.File]::Exists($manifest)) { $manifest = Join-Path $env:ProgramFiles "WindowsApps\$full\AppxManifest.xml" }
                 if (-not [IO.File]::Exists($manifest)) { continue }
                 $txt = [IO.File]::ReadAllText($manifest)
                 if ($txt.IndexOf('fileExplorerContextMenus', [StringComparison]::OrdinalIgnoreCase) -lt 0) { continue }

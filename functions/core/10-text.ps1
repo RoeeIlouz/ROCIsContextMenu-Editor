@@ -32,3 +32,29 @@ function ConvertTo-KeyName([string]$Name) {
     if (-not $k) { $k = 'CustomCommand' }
     return $k
 }
+
+# Send to sorts its items by display name. Leading zero-width spaces sort before any letter and
+# don't show, so they are how a custom order is kept (see Set-SendToOrder).
+$SortMark = [string][char]0x200B
+function Remove-SortPrefix([string]$Text) { if ($Text) { return $Text.TrimStart([char]0x200B) } return $Text }
+
+# A short uppercase key that sorts strictly between $Low and $High (either may be empty for "no bound"),
+# comparing case-insensitively the way Explorer orders verb and handler keys. The result is never a
+# prefix of $High, so anything appended to it still sorts before $High. $null when there is no room.
+function Get-KeyBetween([string]$Low, [string]$High) {
+    $alpha = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'.ToCharArray()
+    $L = ([string]$Low).ToUpperInvariant()
+    $H = if ($High) { $High.ToUpperInvariant() } else { $null }
+    $sb = [Text.StringBuilder]::new()
+    for ($i = 0; $i -lt 64; $i++) {
+        $lo = if ($i -lt $L.Length) { [int]$L[$i] } else { -1 }
+        if ($null -ne $H -and $i -ge $H.Length) { return $null }
+        $hi = if ($null -ne $H) { [int]$H[$i] } else { 0x10000 }
+        $room = @($alpha | Where-Object { [int]$_ -gt $lo -and [int]$_ -lt $hi })
+        if ($room.Count) { return $sb.Append($room[[int][Math]::Floor($room.Count / 2)]).ToString() }
+        if ($lo -eq -1) { [void]$sb.Append([char]$hi); continue }    # $Low is used up: follow $High
+        [void]$sb.Append([char]$lo)
+        if ($lo -lt $hi) { $H = $null }                               # already below $High from here on
+    }
+    return $null
+}

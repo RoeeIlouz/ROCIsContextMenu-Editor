@@ -117,7 +117,8 @@ function Get-SendToFileInfo([IO.FileInfo]$File) {
 
 function New-SendToFileEntry([IO.FileInfo]$File, [string]$RelPath, [string]$ParentName, [string]$ParentPath) {
     $info = Get-SendToFileInfo $File
-    $name = if ($info.Name) { $info.Name } else { $File.BaseName }
+    # A reordered Send to item's display name starts with zero-width spaces (see Set-SendToOrder).
+    $name = (Remove-SortPrefix $(if ($info.Name) { $info.Name } else { $File.BaseName }))
     $target = $info.Target; $arguments = $info.Arguments; $broken = ''
     if ($target -and (Test-MissingFile $target)) { $broken = "Shortcut target not found: $target" }
     $sub = if ($target -like '*\CmeSendTo.exe') { if ($info.Description) { $info.Description } else { 'Windows 11 menu command' } }
@@ -151,7 +152,7 @@ function Read-SendTo($Out) {
         $children = @(Get-ChildItem -LiteralPath $f.FullName -Force -File -ErrorAction SilentlyContinue | Where-Object { $_.Name -ine 'desktop.ini' })
         foreach ($c in $children) { $Out.Add((New-SendToFileEntry $c "$($f.Name)\$($c.Name)" $f.Name $f.FullName)) }
         $Out.Add((Complete-Entry @{
-            Id = "sendto|$($f.Name)"; Kind = 'SendTo'; Name = $f.Name; KeyName = $f.Name; Hive = 'HKCU'
+            Id = "sendto|$($f.Name)"; Kind = 'SendTo'; Name = (Remove-SortPrefix ([CME.Native]::DisplayName($f.FullName))); KeyName = $f.Name; Hive = 'HKCU'
             Sub = "Submenu with $($children.Count) item$(if ($children.Count -ne 1) { 's' })"
             Paths = @($f.FullName); FilePath = $f.FullName; LocIds = @('sendto'); LocLabel = 'Send to'; IconSpec = "shell:$($f.FullName)"
             Enabled = -not ($f.Attributes -band [IO.FileAttributes]::Hidden); Submenu = $true; Children = $children.Count

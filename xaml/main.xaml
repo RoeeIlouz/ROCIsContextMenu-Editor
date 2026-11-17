@@ -14,7 +14,7 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ListBoxItem">
-                        <Border x:Name="b" Background="Transparent" CornerRadius="7" Padding="10,8" Margin="10,1">
+                        <Border x:Name="b" Background="Transparent" CornerRadius="7" Padding="10,6" Margin="10,1">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
@@ -113,6 +113,62 @@
                 <DataTrigger Binding="{Binding IsCommand}" Value="False"><Setter TargetName="sub" Property="FontFamily" Value="Segoe UI Variable Text, Segoe UI"/></DataTrigger>
             </DataTemplate.Triggers>
         </DataTemplate>
+
+        <!-- Menu preview: rows drawn like a Windows menu -->
+        <Style x:Key="MenuRowItem" TargetType="ListBoxItem">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="Foreground" Value="#F3F3F3"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="b" Background="Transparent" CornerRadius="4" Margin="0,1">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="b" Property="Background" Value="#383A3F"/></Trigger>
+                            <Trigger Property="IsSelected" Value="True"><Setter TargetName="b" Property="Background" Value="#45474D"/></Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Separator}" Value="True">
+                    <Setter Property="IsHitTestVisible" Value="False"/>
+                    <Setter Property="Focusable" Value="False"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <DataTemplate x:Key="MenuRowTemplate">
+            <Grid ToolTip="{Binding Tip}" ToolTipService.InitialShowDelay="600">
+                <Grid Height="9" Visibility="{Binding SepVisible}">
+                    <Rectangle Height="1" Fill="#45474D" Margin="10,0" VerticalAlignment="Center"/>
+                </Grid>
+                <Grid x:Name="row" Height="30" Visibility="{Binding RowVisible}" Opacity="{Binding Opacity}" Background="Transparent">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="34"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="20"/>
+                    </Grid.ColumnDefinitions>
+                    <Image Source="{Binding IconImage}" Width="16" Height="16" RenderOptions.BitmapScalingMode="HighQuality"/>
+                    <TextBlock Grid.Column="1" Text="{Binding Text}" FontWeight="{Binding Weight}" FontSize="13" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                    <Path Grid.Column="2" Visibility="{Binding LockVisible}" Fill="#6C6F75" Width="9" Height="11" Stretch="Uniform" Margin="10,0,2,0" VerticalAlignment="Center"
+                          Data="M12,17A2,2 0 0,0 14,15C14,13.89 13.1,13 12,13A2,2 0 0,0 10,15A2,2 0 0,0 12,17M18,8A2,2 0 0,1 20,10V20A2,2 0 0,1 18,22H6A2,2 0 0,1 4,20V10C4,8.89 4.9,8 6,8H7V6A5,5 0 0,1 12,1A5,5 0 0,1 17,6V8H18M12,3A3,3 0 0,0 9,6V8H15V6A3,3 0 0,0 12,3Z"/>
+                    <Path x:Name="grip" Grid.Column="2" Visibility="Collapsed" Fill="#8A8D93" Width="8" Height="12" Stretch="Uniform" Margin="10,0,2,0" VerticalAlignment="Center"
+                          Data="M9,3H11V5H9V3M13,3H15V5H13V3M9,7H11V9H9V7M13,7H15V9H13V7M9,11H11V13H9V11M13,11H15V13H13V11M9,15H11V17H9V15M13,15H15V17H13V15M9,19H11V21H9V19M13,19H15V21H13V19Z"/>
+                    <Path Grid.Column="3" Visibility="{Binding ChevronVisible}" Fill="#C8CACF" Width="6" Height="10" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"
+                          Data="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"/>
+                </Grid>
+            </Grid>
+            <DataTemplate.Triggers>
+                <DataTrigger Binding="{Binding Movable}" Value="True">
+                    <Setter TargetName="row" Property="Cursor" Value="SizeAll"/>
+                    <Setter TargetName="grip" Property="Visibility" Value="Visible"/>
+                </DataTrigger>
+            </DataTemplate.Triggers>
+        </DataTemplate>
     </Window.Resources>
 
     <Grid Background="#1B1C1F">
@@ -124,7 +180,7 @@
         <!-- SIDEBAR -->
         <Border Background="#151618" BorderBrush="#2A2B2F" BorderThickness="0,0,1,0">
             <DockPanel>
-                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="20,22,20,26">
+                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="20,20,20,18">
                     <Image x:Name="BrandIcon" Width="34" Height="34" RenderOptions.BitmapScalingMode="HighQuality"/>
                     <StackPanel Margin="11,0,0,0" VerticalAlignment="Center">
                         <TextBlock Text="Context Menu" FontSize="14" FontWeight="SemiBold" Foreground="#FFFFFF"/>
@@ -170,11 +226,12 @@
                     </Button>
                 </StackPanel>
 
-                <StackPanel>
-                    <TextBlock Text="Where it appears" FontSize="12" Foreground="#6C6F75" Margin="22,0,0,8"/>
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="Where it appears" FontSize="12" Foreground="#6C6F75" Margin="22,0,0,8"/>
+                    <!-- Scrolls (wheel, no bar) when the window is too short for every page -->
                     <ListBox x:Name="NavList" Background="Transparent" BorderThickness="0" ItemContainerStyle="{StaticResource NavItem}"
-                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"/>
-                </StackPanel>
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Hidden"/>
+                </DockPanel>
             </DockPanel>
         </Border>
 
@@ -269,6 +326,18 @@
                 <Button x:Name="BtnSendToFolder" Style="{StaticResource Btn}" Content="Add folder..." Margin="0,0,8,0"/>
                 <Button x:Name="BtnSendToOpen" Style="{StaticResource BtnGhost}" Content="Open Send To folder"/>
             </StackPanel>
+
+            <!-- Other places bar -->
+            <ItemsControl x:Name="MoreBar" Grid.Row="2" Margin="28,0,24,6" Visibility="Collapsed">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <RadioButton Style="{StaticResource Chip}" GroupName="moreplace" Content="{Binding Label}" Tag="{Binding Id}" IsChecked="{Binding Checked, Mode=OneTime}"/>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
 
             <!-- Broken entries bar -->
             <Border x:Name="BrokenBar" Grid.Row="2" Background="#14E5323F" BorderBrush="#33E5323F" BorderThickness="1" CornerRadius="8"
@@ -574,6 +643,128 @@
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
+                        </ScrollViewer>
+                    </Border>
+                </Grid>
+
+                <!-- Menu preview page: the real menu, drag to reorder -->
+                <Grid x:Name="PreviewPanel" Grid.ColumnSpan="2" Margin="18,0,24,16" Visibility="Collapsed">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="350"/>
+                    </Grid.ColumnDefinitions>
+                    <DockPanel Grid.ColumnSpan="2" Margin="10,0,0,10">
+                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Top">
+                            <CheckBox x:Name="ChkPreviewShift" Style="{StaticResource Switch}" Content="Shift held" Foreground="#A2A5AB" VerticalAlignment="Center" Margin="0,0,14,0"
+                                      ToolTip="Show the menu you get with Shift + right-click, including Shift-only entries"/>
+                            <Button x:Name="BtnPreviewRefresh" Style="{StaticResource BtnIcon}" ToolTip="Read the menu again (F5)">
+                                <Path Fill="#A2A5AB" Width="14" Height="14" Stretch="Uniform" Data="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z"/>
+                            </Button>
+                        </StackPanel>
+                        <ItemsControl x:Name="PreviewTargets">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <RadioButton Style="{StaticResource Chip}" GroupName="pvtarget" Content="{Binding Label}" Tag="{Binding Id}" IsChecked="{Binding Checked, Mode=OneTime}"/>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </DockPanel>
+
+                    <Border Grid.Row="1" Background="#151618" BorderBrush="#2A2B2F" BorderThickness="1" CornerRadius="12" Margin="10,0,16,0">
+                        <Grid>
+                            <ScrollViewer x:Name="PreviewScroll" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                                <StackPanel Margin="26,20,26,26">
+                                    <TextBlock x:Name="TxtPreviewSubject" Foreground="#7A7D83" FontSize="12" Margin="2,0,0,12"/>
+                                    <StackPanel x:Name="PreviewColumns" Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+                                </StackPanel>
+                            </ScrollViewer>
+                            <StackPanel x:Name="PreviewError" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="30" Visibility="Collapsed">
+                                <TextBlock Text="Couldn't read this menu" FontSize="15" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,0,0,6"/>
+                                <TextBlock x:Name="TxtPreviewError" Foreground="#7A7D83" TextWrapping="Wrap" TextAlignment="Center" MaxWidth="420"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <Border Grid.Row="1" Grid.Column="1" Background="#232428" BorderBrush="#2A2B2F" BorderThickness="1" CornerRadius="12">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <StackPanel Margin="22,20,22,22">
+                                <StackPanel x:Name="PvHelp">
+                                    <TextBlock Text="How this works" FontWeight="SemiBold" FontSize="14"/>
+                                    <TextBlock Foreground="#A2A5AB" TextWrapping="Wrap" Margin="0,8,0,0" LineHeight="19"
+                                               Text="This is the full menu (Show more options) exactly as Windows builds it for the item above. Click a row with an arrow to open its submenu."/>
+                                    <TextBlock Foreground="#A2A5AB" TextWrapping="Wrap" Margin="0,8,0,0" LineHeight="19"
+                                               Text="Drag a row to move it. Windows only lets entries move among their own kind, so a row can be dropped where the blue line appears. Rows with a lock are placed by Windows; hover one to see why."/>
+                                    <TextBlock Foreground="#A2A5AB" TextWrapping="Wrap" Margin="0,8,0,0" LineHeight="19"
+                                               Text="Every move is backed up and can be undone from the status bar."/>
+                                </StackPanel>
+
+                                <StackPanel x:Name="PvDetail" Visibility="Collapsed">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid Width="40" Height="40" Margin="0,0,12,0" VerticalAlignment="Top">
+                                            <Border CornerRadius="9" Background="#2D2F33"/>
+                                            <Image x:Name="PvIcon" Width="22" Height="22" RenderOptions.BitmapScalingMode="HighQuality"/>
+                                        </Grid>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                            <TextBlock x:Name="PvName" FontWeight="SemiBold" FontSize="15" TextWrapping="Wrap"/>
+                                            <TextBlock x:Name="PvKind" Foreground="#7A7D83" FontSize="12" Margin="0,2,0,0" TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                    </Grid>
+                                    <Border x:Name="PvMoveBox" CornerRadius="8" Padding="12,10" Margin="0,16,0,0" Background="#1B1C1F">
+                                        <StackPanel>
+                                            <TextBlock x:Name="PvMoveTitle" FontWeight="SemiBold" FontSize="12.5"/>
+                                            <TextBlock x:Name="PvMoveText" Foreground="#A2A5AB" FontSize="12" TextWrapping="Wrap" Margin="0,4,0,0" LineHeight="18"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <Grid x:Name="PvToggleRow" Margin="0,14,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="Shown in the menu" VerticalAlignment="Center"/>
+                                        <ToggleButton x:Name="PvSwitch" Grid.Column="1" Style="{StaticResource Switch}"/>
+                                    </Grid>
+                                    <WrapPanel x:Name="PvButtons" Margin="0,14,-8,0">
+                                        <Button x:Name="BtnPvEdit" Style="{StaticResource Btn}" Content="Edit..." Margin="0,0,8,8"/>
+                                        <Button x:Name="BtnPvTop" Style="{StaticResource Btn}" Content="Pin to top" Margin="0,0,8,8" ToolTip="Put it above everything else, even Open (Position = Top)"/>
+                                        <Button x:Name="BtnPvBottom" Style="{StaticResource Btn}" Content="Pin to bottom" Margin="0,0,8,8" ToolTip="Put it at the bottom of its section (Position = Bottom)"/>
+                                        <Button x:Name="BtnPvUnpin" Style="{StaticResource Btn}" Content="Unpin" Margin="0,0,8,8"/>
+                                        <Button x:Name="BtnPvReset" Style="{StaticResource Btn}" Content="Reset position" Margin="0,0,8,8" ToolTip="Give it back its original key name, so Windows puts it where it was"/>
+                                        <Button x:Name="BtnPvResetSendTo" Style="{StaticResource Btn}" Content="Reset Send to order" Margin="0,0,8,8" ToolTip="Put every Send to item back in Windows' alphabetical order"/>
+                                    </WrapPanel>
+                                </StackPanel>
+
+                                <Border Height="1" Background="#2A2B2F" Margin="0,20,0,16"/>
+                                <TextBlock x:Name="TxtPvOff" Text="Turned off here" FontWeight="SemiBold" FontSize="13"/>
+                                <TextBlock x:Name="TxtPvOffEmpty" Text="Nothing is turned off for this item." Foreground="#7A7D83" FontSize="12" Margin="0,6,0,0"/>
+                                <ItemsControl x:Name="PvOffList" Margin="0,8,0,0">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid Margin="0,0,0,8">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel VerticalAlignment="Center" Margin="0,0,10,0">
+                                                    <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Name}"/>
+                                                    <TextBlock Text="{Binding KindLabel}" Foreground="#7A7D83" FontSize="11.5"/>
+                                                </StackPanel>
+                                                <ToggleButton Grid.Column="1" Style="{StaticResource Switch}" IsChecked="{Binding Enabled, Mode=OneWay}" VerticalAlignment="Center" ToolTip="Turn it back on"/>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
                         </ScrollViewer>
                     </Border>
                 </Grid>

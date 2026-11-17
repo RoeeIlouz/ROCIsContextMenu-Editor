@@ -215,6 +215,9 @@ function Invoke-Scan {
             Read-Handlers $hive $b $bases[$b] $handlers
         }
     }
+    foreach ($b in $DragDropBases.Keys) {
+        foreach ($hive in 'HKCU', 'HKLM') { Read-Handlers $hive $b $DragDropBases[$b] $handlers 'DragDropHandlers' }
+    }
 
     foreach ($h in $handlers.Values) {
         $bl = if ($blocked.ContainsKey($h.Clsid)) { $blocked[$h.Clsid] } else { @{} }
